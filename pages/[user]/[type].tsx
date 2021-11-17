@@ -70,6 +70,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       weekStart: true,
       availability: true,
       hideBranding: true,
+      brandColor: true,
       theme: true,
       plan: true,
       eventTypes: {
@@ -156,7 +157,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     }
   }*/
   const getWorkingHours = (availability: typeof user.availability | typeof eventType.availability) =>
-    availability && availability.length ? availability : null;
+    availability && availability.length
+      ? availability.map((schedule) => ({
+          ...schedule,
+          startTime: schedule.startTime.getHours() * 60 + schedule.startTime.getMinutes(),
+          endTime: schedule.endTime.getHours() * 60 + schedule.endTime.getMinutes(),
+        }))
+      : null;
 
   const workingHours =
     getWorkingHours(eventType.availability) ||
@@ -176,6 +183,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
   });
 
+  eventTypeObject.availability = [];
+
   return {
     props: {
       profile: {
@@ -184,6 +193,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         slug: user.username,
         theme: user.theme,
         weekStart: user.weekStart,
+        brandColor: user.brandColor,
       },
       date: dateParam,
       eventType: eventTypeObject,

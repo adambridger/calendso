@@ -21,6 +21,7 @@ model EventType {
   title                   String
   slug                    String
   description             String?
+  position                Int                    @default(0)
   locations               Json?
   length                  Int
   hidden                  Boolean                @default(false)
@@ -93,6 +94,7 @@ model User {
   plan                UserPlan           @default(PRO)
   Schedule            Schedule[]
   webhooks            Webhook[]
+  brandColor          String             @default("#292929")
 
   @@map(name: "users")
 }
@@ -167,7 +169,7 @@ model DailyEventReference {
   dailyurl   String   @default("dailycallurl")
   dailytoken String   @default("dailytoken")
   booking    Booking? @relation(fields: [bookingId], references: [id])
-  bookingId  Int?
+  bookingId  Int?     @unique
 }
 
 model Booking {
@@ -216,8 +218,8 @@ model Availability {
   eventType   EventType? @relation(fields: [eventTypeId], references: [id])
   eventTypeId Int?
   days        Int[]
-  startTime   Int
-  endTime     Int
+  startTime   DateTime   @db.Time
+  endTime     DateTime   @db.Time
   date        DateTime?  @db.Date
 }
 
