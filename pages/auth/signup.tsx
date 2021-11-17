@@ -3,7 +3,6 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 
 import { useLocale } from "@lib/hooks/useLocale";
-import prisma from "@lib/prisma";
 
 import { HeadSeo } from "@components/seo/head-seo";
 import { UsernameInput } from "@components/ui/UsernameInput";
@@ -23,7 +22,15 @@ export default function Signup(props) {
     }
   };
 
-  const signUp = (e) => {
+  const signUp = (e: {
+    preventDefault: () => void;
+    target: {
+      password: { value: string };
+      passwordcheck: { value: unknown };
+      email: { value: string };
+      username: { value: unknown };
+    };
+  }) => {
     e.preventDefault();
 
     if (e.target.password.value !== e.target.passwordcheck.value) {
@@ -132,47 +139,4 @@ export default function Signup(props) {
       </div>
     </div>
   );
-}
-
-export async function getServerSideProps(ctx) {
-  if (!ctx.query.token) {
-    return {
-      notFound: true,
-    };
-  }
-  const verificationRequest = await prisma.verificationRequest.findUnique({
-    where: {
-      token: ctx.query.token,
-    },
-  });
-
-  // for now, disable if no verificationRequestToken given or token expired
-  if (!verificationRequest || verificationRequest.expires < new Date()) {
-    return {
-      notFound: true,
-    };
-  }
-
-  const existingUser = await prisma.user.findFirst({
-    where: {
-      AND: [
-        {
-          email: verificationRequest.identifier,
-        },
-        {
-          emailVerified: {
-            not: null,
-          },
-        },
-      ],
-    },
-  });
-
-  if (existingUser) {
-    return {
-      redirect: { permanent: false, destination: "/auth/login?callbackUrl=" + ctx.query.callbackUrl },
-    };
-  }
-
-  return { props: { email: verificationRequest.identifier } };
 }
